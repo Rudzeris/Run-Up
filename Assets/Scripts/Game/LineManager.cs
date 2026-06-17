@@ -9,7 +9,8 @@ namespace Game
 {
     public class LineManager : MonoBehaviour
     {
-        public int step = 2; // Расстояние между линиями
+        const int Step = 1;
+        public int maximumLines = 5;
         public float radius = 2; // Расстояние от центра до сущности на линии
         public float height = 2; // Высота линии
         public Vector3 startPoint = Vector3.zero;
@@ -31,14 +32,22 @@ namespace Game
                 Instantiate(prefab, left, Quaternion.identity),
                 Instantiate(prefab, right, Quaternion.identity)
             ));
+
+            if (_lines.Count > maximumLines)
+            {
+                var line = _lines.Dequeue();
+                Destroy(line.left);
+                Destroy(line.right);
+            }
+                
         }
 
         public void StepDown()
         {
             foreach (var item in _lines)
             {
-                item.left.transform.position += Vector3.down * step;
-                item.right.transform.position += Vector3.down * step;
+                item.left.transform.position += Vector3.down * Step;
+                item.right.transform.position += Vector3.down * Step;
             }
         }
 
