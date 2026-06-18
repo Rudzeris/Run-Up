@@ -12,34 +12,30 @@ namespace Game
         [SerializeField, Range(1,3)] private int _stepForNewLine = 2;
 
         private int _currentStep = 0;
-        
+
+        public void Start()
+        {
+            if (_chooseManager != null)
+                _chooseManager.Choosed += OnChoosed;
+        }
         public void StartLevel()
         {
             if (_lineManager == null)
                 throw new ArgumentNullException("LineManager is null");
             _isEnabled = true;
-
-            if (_chooseManager != null)
-                _chooseManager.Choosed += OnChoosed;
+            
+            _lineManager.CreateLine();
+            _currentStep = _stepForNewLine;
         }
 
         private void OnChoosed(Choose obj)
         {
-            if(obj == Choose.None)
+            if(obj == Choose.None || !_isEnabled)
                 return;
 
             if (obj != Choose.Space)
             {
-                Line line = _lineManager.Peek();
-                switch (obj)
-                {
-                    case Choose.Left:
-                        Destroy(line.left);
-                        break;
-                    case Choose.Right:
-                        Destroy(line.right);
-                        break;
-                }
+                _lineManager.DestroyFirstLine();
             }
             _lineManager.StepDown();
 

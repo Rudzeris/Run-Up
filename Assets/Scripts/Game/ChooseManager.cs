@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace Game
 {
@@ -10,7 +11,7 @@ namespace Game
         private void Update()
         {
             Choose choose = Choose.None;
-            if (Input.anyKeyDown)
+            if (Input.anyKeyDown && !EventSystem.current.IsPointerOverGameObject())
             {
                 var axis = Input.GetAxis("Horizontal");
                 if (axis > 0)
