@@ -4,50 +4,58 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
 using Zenject;
+using Random = UnityEngine.Random;
 
 namespace Game
 {
     public class LineManager : MonoBehaviour
     {
+        [SerializeField] private int _maximumLines = 10;
+        [SerializeField] private float _radius = 2; // Расстояние от центра до сущности на линии
+        [SerializeField] private Vector3 _startPoint = Vector3.zero;
+
+        public Action FirstLineDestroyed;
+        public Action Moved;
+        public Action<Line> CreatedLine;
         const int Step = 1;
-        public int maximumLines = 10;
-        public float radius = 2; // Расстояние от центра до сущности на линии
-        public Vector3 startPoint = Vector3.zero;
-        public GameObject prefab;
+
+
+        public int MaximumLines => _maximumLines;
+        public float Radius => _radius;
+        private Vector3 StartPoint => _startPoint;
+        private int LastIndex => MaximumLines - 1;
+
+
+        private Line? firstLine;
         private Line?[] _lines;
 
         private void Start()
         {
-            _lines = new Line?[maximumLines];
+            _lines = new Line?[MaximumLines];
         }
 
         public void CreateLine()
         {
-            if (prefab == null)
-                throw new ArgumentException("prefab is null");
-
             if (_lines[LastIndex] != null)
                 return;
 
-            Vector3 left = startPoint;
-            Vector3 right = startPoint;
+            Vector3 left = _startPoint;
+            Vector3 right = _startPoint;
             left.y += LastIndex;
             right.y += LastIndex;
-            left.x -= radius;
-            right.x += radius;
-
-            _lines[LastIndex] = new Line(
-                Instantiate(prefab, left, Quaternion.identity),
-                Instantiate(prefab, right, Quaternion.identity)
+            left.x -= _radius;
+            right.x += _radius;
+            
+            var newLine = new Line(
+                (EntityType) (int)UnityEngine.Random.Range(1,3),
+                (EntityType) (int)UnityEngine.Random.Range(1,3)
             );
-            ShowLinesDebug();
+            _lines[LastIndex] = newLine;
 
+            CreatedLine?.Invoke(newLine);
+            ShowLinesDebug();
         }
 
-        private int LastIndex => maximumLines - 1;
-
-        private Line? firstLine;
-        
         public void StepDown()
         {
             firstLine?.Destroy();
@@ -55,26 +63,15 @@ namespace Game
             for (int i = 0; i < LastIndex; i++)
                 _lines[i] = _lines[i + 1];
             _lines[LastIndex] = null;
-
-            for (int i = 0; i < maximumLines; i++)
-                _lines[i]?.SetPosition(i+startPoint.y);
-            
-            firstLine?.SetPosition(startPoint.y-1);
-            
+            Moved?.Invoke();
             ShowLinesDebug();
-        }
-
-        private void ShowLinesDebug()
-        {
-            string text = "";
-            foreach (var line in _lines) text += (line == null ? "null; " : "not null; ");
-            Debug.Log(text);
         }
 
         public void DestroyFirstLine()
         {
             Line? line = _lines[0];
             line?.Destroy();
+            FirstLineDestroyed?.Invoke();
         }
 
         public Line? Peek()
@@ -82,55 +79,18 @@ namespace Game
 
         public void OnDrawGizmos()
         {
-            Gizmos.color=Color.red;
-            Gizmos.DrawSphere(startPoint,0.3f);
-        }
-    }
-
-    public struct Line
-    {
-        public GameObject left, right;
-
-        public Line(GameObject left, GameObject right)
-        {
-            this.left = left;
-            this.right = right;
+            Gizmos.color = Color.red;
+            Gizmos.DrawSphere(_startPoint, 0.3f);
         }
 
-        public void SetPosition(float y)
+        private void ShowLinesDebug()
         {
-            SetPositionForGameObject(y, left);
-            SetPositionForGameObject(y, right);
-        }
-
-        private static void SetPositionForGameObject(float y, GameObject gameObject)
-        {
-            if(gameObject== null)
-                return;
-            Vector3 temp = gameObject.transform.position;
-            temp.y = y;
-            gameObject.transform.position = temp;
-        }
-
-        public void Destroy(Choose choose)
-        {
-            if (choose == Choose.Left)
-            {
-                GameObject.Destroy(left);
-                left = null;
-            }
-
-            if (choose == Choose.Right)
-            {
-                GameObject.Destroy(right);
-                right = null;
-            }
-        }
-
-        public void Destroy()
-        {
-            if (left != null) Destroy(Choose.Left);
-            if (right != null) Destroy(Choose.Right);
+            string text = "";
+            if(firstLine!=null)
+                text+=$"[{(int)firstLine?.left},{(int)firstLine?.right}]; ";
+            foreach (var line in _lines) text += (line == null ? "null" : 
+                    $"{(int)line?.left}|{(int)line?.right}")+"; ";
+            Debug.Log(text);
         }
     }
 }

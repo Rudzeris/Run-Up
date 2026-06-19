@@ -34,7 +34,7 @@ namespace Game
             if (obj == Choose.None || !_isEnabled)
                 return;
 
-            if (obj != Choose.Space) 
+            if (obj != Choose.Space)
                 _lineManager.Peek()?.Destroy(obj);
 
             _lineManager.StepDown();
