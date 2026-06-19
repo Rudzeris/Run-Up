@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace Game
 {
@@ -9,11 +10,12 @@ namespace Game
         Coin,
         Villager
     }
-    public struct Line
+    public class Line
     {
-        public EntityType left, right;
+        public Action Destroyed;
+        public Entity left, right;
 
-        public Line(EntityType left, EntityType right)
+        public Line(Entity left, Entity right)
         {
             this.left = left;
             this.right = right;
@@ -21,24 +23,53 @@ namespace Game
 
         public void Destroy(Choose choose)
         {
-            EntityType destroyed = EntityType.None;
+            Entity? destroyed = null;
             if (choose == Choose.Left)
             {
                 destroyed = left;
-                left = EntityType.None;
+                left = null;
             }
 
             if (choose == Choose.Right)
             {
                 destroyed = right;
-                right = EntityType.None;
+                right = null;
             }
-            Debug.Log($"Destroyed {(int) destroyed}");
+
+            if (destroyed != null)
+            {
+                Debug.Log($"---Destroyed {destroyed}---");
+                destroyed.Destroy();
+            }
         }
 
         public void Destroy()
         {
-            left = right = EntityType.None;
+            left?.Destroy();
+            right?.Destroy();
+            left = right = null;
+            Destroyed?.Invoke();
+        }
+
+        public override string ToString() => "{" + $"{left}, {right}" + "}";
+    }
+
+    public class Entity
+    {
+        public Action<Entity> Destroyed;
+        public EntityType Type { get; private set; }
+
+        public Entity(EntityType type)
+        {
+            Type = type;
+        }
+
+        public override string ToString() => Type.ToString();
+
+        public void Destroy()
+        {
+            Type = EntityType.None;
+            Destroyed?.Invoke(this);
         }
     }
 }

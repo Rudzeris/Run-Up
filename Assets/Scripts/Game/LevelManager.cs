@@ -6,12 +6,17 @@ namespace Game
 {
     public class LevelManager : MonoBehaviour
     {
+        [SerializeField] private UIManager _ui;
         [SerializeField] private bool _isEnabled;
         [SerializeField] private LineManager _lineManager;
         [SerializeField] private ChooseManager _chooseManager;
         [SerializeField, Range(1, 3)] private int _stepForNewLine = 2;
 
         private int _currentStep = 0;
+
+        private int _countEnemies = 0;
+        private int _countCoins = 0;
+        private int _countVillagers = 0;
 
         public void Start()
         {
@@ -29,13 +34,33 @@ namespace Game
             _currentStep = _stepForNewLine;
         }
 
-        private void OnChoosed(Choose obj)
+        private void OnChoosed(Choose choose)
         {
-            if (obj == Choose.None || !_isEnabled)
+            if (choose == Choose.None || !_isEnabled)
                 return;
 
-            if (obj != Choose.Space)
-                _lineManager.Peek()?.Destroy(obj);
+            if (choose != Choose.Space)
+            {
+                // TODO: Вынести отсюда
+                var line = _lineManager.Peek();
+                var entity = choose == Choose.Left ? line?.left : line?.right;
+                if (entity != null)
+                {
+                    switch (entity.Type)
+                    {
+                        case EntityType.Coin: _countCoins++;
+                            break;
+                        case EntityType.Enemy: _countEnemies++;
+                            break;
+                        case EntityType.Villager: _countVillagers++;
+                            break;
+                    }
+                    _ui.ShowCoins(_countCoins);
+                    _ui.ShowEnemies(_countEnemies);
+                    _ui.ShowVillagers(_countVillagers);
+                }
+                line?.Destroy(choose);
+            }
 
             _lineManager.StepDown();
 
