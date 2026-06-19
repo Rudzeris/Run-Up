@@ -9,7 +9,7 @@ namespace Game
         [SerializeField] private bool _isEnabled;
         [SerializeField] private LineManager _lineManager;
         [SerializeField] private ChooseManager _chooseManager;
-        [SerializeField, Range(1,3)] private int _stepForNewLine = 2;
+        [SerializeField, Range(1, 3)] private int _stepForNewLine = 2;
 
         private int _currentStep = 0;
 
@@ -18,25 +18,25 @@ namespace Game
             if (_chooseManager != null)
                 _chooseManager.Choosed += OnChoosed;
         }
+
         public void StartLevel()
         {
             if (_lineManager == null)
                 throw new ArgumentNullException("LineManager is null");
             _isEnabled = true;
-            
+
             _lineManager.CreateLine();
             _currentStep = _stepForNewLine;
         }
 
         private void OnChoosed(Choose obj)
         {
-            if(obj == Choose.None || !_isEnabled)
+            if (obj == Choose.None || !_isEnabled)
                 return;
 
-            if (obj != Choose.Space)
-            {
-                _lineManager.DestroyFirstLine();
-            }
+            if (obj != Choose.Space) 
+                _lineManager.Peek()?.Destroy(obj);
+
             _lineManager.StepDown();
 
             if (_currentStep <= 0)
@@ -46,6 +46,7 @@ namespace Game
             }
             else
                 _currentStep--;
+
             Debug.Log($"Current step: {_currentStep}");
         }
     }

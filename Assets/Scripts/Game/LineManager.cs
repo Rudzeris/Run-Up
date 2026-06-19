@@ -10,7 +10,7 @@ namespace Game
     public class LineManager : MonoBehaviour
     {
         const int Step = 1;
-        public int maximumLines = 5;
+        public int maximumLines = 10;
         public float radius = 2; // Расстояние от центра до сущности на линии
         public Vector3 startPoint = Vector3.zero;
         public GameObject prefab;
@@ -46,15 +46,21 @@ namespace Game
 
         private int LastIndex => maximumLines - 1;
 
+        private Line? firstLine;
+        
         public void StepDown()
         {
-            DestroyFirstLine();
+            firstLine?.Destroy();
+            firstLine = _lines[0];
             for (int i = 0; i < LastIndex; i++)
                 _lines[i] = _lines[i + 1];
             _lines[LastIndex] = null;
 
             for (int i = 0; i < maximumLines; i++)
                 _lines[i]?.SetPosition(i+startPoint.y);
+            
+            firstLine?.SetPosition(startPoint.y-1);
+            
             ShowLinesDebug();
         }
 
@@ -99,6 +105,8 @@ namespace Game
 
         private static void SetPositionForGameObject(float y, GameObject gameObject)
         {
+            if(gameObject== null)
+                return;
             Vector3 temp = gameObject.transform.position;
             temp.y = y;
             gameObject.transform.position = temp;

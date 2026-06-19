@@ -572,7 +572,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 476e5454afb944199c4ed81e1ffacb5c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maximumLines: 5
+  maximumLines: 10
   radius: 2
   startPoint: {x: 0, y: -3, z: 0}
   prefab: {fileID: 907700555}
